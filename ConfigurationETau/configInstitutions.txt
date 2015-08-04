@@ -1,0 +1,8 @@
+# text file containing root file config
+# format should be comma separated:
+# label ROOTfilePath TTreePath
+UCD, ~/Desktop/junk/160_sync/Davis_SyncNtuples/davis_syncTree_EleTau.root, TauCheck
+Imperial, ~/Desktop/junk/160_sync/Others/Imperial/SYNCFILE_SUSYGluGluToHToTauTau_M-160_et_spring15.root, TauCheck
+Brown, ~/Desktop/junk/160_sync/Others/Brown/SYNC_SUSY_HToTauTau_M-160_et_spring15_v2.root, Ntuple
+KIT, ~/Desktop/junk/160_sync/Others/KIT/SUSYGluGluToHToTauTauM160_et_RunIISpring15DR74_Asympt25ns_13TeV_MINIAODSIM.root, et/ntuple
+CERN, ~/Desktop/junk/160_sync/Others/CERN/SUSYGluGluToHToTauTau_M-160_spring15_2807_ET.root, tree
