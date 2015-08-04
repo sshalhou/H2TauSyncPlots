@@ -6,7 +6,7 @@ import fileinput
 import ROOT
 from ROOT import gROOT,TChain, TLorentzVector, TSelector
 from ROOT import TLegend, TTree, TF1, TH1F, TCanvas, gStyle, TFile, TPad
-ROOT.gROOT.Macro( os.path.expanduser( './rootlogon.C'))
+ROOT.gROOT.Macro( os.path.expanduser( './SharedConfig/rootlogon.C'))
 gStyle.SetOptStat(000000)
 gROOT.SetBatch(1)
 
