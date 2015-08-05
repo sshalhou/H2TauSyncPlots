@@ -2,6 +2,7 @@
 import time
 import sys
 import os
+import math
 import fileinput
 import ROOT
 from ROOT import gROOT,TChain, TLorentzVector, TSelector
@@ -26,6 +27,7 @@ def printErrorMes():
 
 # make a dictionary of histograms, files, and dictionaries, and institutions
 
+skip_dict = {} # keys for histograms with 0 entries (otherwise they mess up the plots)
 hist_dict = {}
 hist_dict_keyList = [] # preserve order
 
@@ -95,7 +97,7 @@ for line in fileinput.input(str(configsFolder)+"/configHists.txt"):
 		printErrorMes()
 		sys.exit()
 
-	canvas_dict[str(holder[0])] = TCanvas(str(holder[0]),str(holder[0]),1400,1200)
+	canvas_dict[str(holder[0])] = TCanvas(str(holder[0]),str(holder[0]),1500,1100)
 	for key,value in inst_dict.iteritems():
 		#print str(key+'_'+holder[0])
 		hist_dict[str(key+'_'+holder[0])] = TH1F(str(key+'_'+holder[0]),str(key+'_'+holder[0]),int(holder[1]),float(holder[2]),float(holder[3]))
@@ -114,8 +116,16 @@ for canvasKEY,canvasVALUE in canvas_dict.iteritems():
 		#drawArg2 = canvasKEY+"!=-999"	
 		drawArg2 = ""
 		tempTree.Draw(drawArg1,drawArg2)
-
-
+		#print str(fileKEY+'_'+canvasKEY), hist_dict[str(fileKEY+'_'+canvasKEY)].GetEntries()
+		if hist_dict[str(fileKEY+'_'+canvasKEY)].GetSumOfWeights() == 0:
+			skip_dict[str(fileKEY+'_'+canvasKEY)] = 1.0
+		elif math.isnan((hist_dict[str(fileKEY+'_'+canvasKEY)].GetSumOfWeights())):
+			skip_dict[str(fileKEY+'_'+canvasKEY)] = 1.0
+		elif math.isinf((hist_dict[str(fileKEY+'_'+canvasKEY)].GetSumOfWeights())):
+			skip_dict[str(fileKEY+'_'+canvasKEY)] = 1.0
+		else:
+			skip_dict[str(fileKEY+'_'+canvasKEY)] = 0.0
+				
 
 
 
@@ -124,7 +134,7 @@ for canvasKEY,canvasVALUE in canvas_dict.iteritems():
 	canvasVALUE.Clear()	
 	canvasVALUE.cd()
 	pad1 = TPad("pad1", "pad1",0.0,0.4,1.0,1.0,-1)
-	pad2 = TPad("pad2", "pad2",0.0,0.0,1.0,0.38,-1)
+	pad2 = TPad("pad2", "pad2",0.0,0.01,1.0,0.38,-1)
 	pad1.Draw()
 	pad2.Draw()	
 
@@ -133,9 +143,15 @@ for canvasKEY,canvasVALUE in canvas_dict.iteritems():
 	numeratorHist = []	 # the others to be used in ratio
 	numeratorInst = []	 # the institutions to be used in ratio
 
-	for i in range(0, len(hist_dict_keyList)):
+	for i in range(0, len(hist_dict_keyList)):		
 		histKEY = hist_dict_keyList[i]
 		histVALUE = hist_dict[histKEY]
+		if skip_dict[histKEY] == 1.0:
+			print 'invalid histogram content (0, nan, or inf) : ', histKEY, 'will skip'
+			continue
+		elif skip_dict[histKEY] == 1.0 and (denominatorKEY + "_" + canvasKEY) == histKEY:
+			print 'invalid denominator histogram (0,nan, or, inf) :', histKEY, 'will abort [please choose a differnt denominator]'
+			sys.exit()
 		pad1.cd()
 		if histKEY.endswith("_"+canvasKEY):
 			plotCount = plotCount+1
@@ -168,9 +184,9 @@ for canvasKEY,canvasVALUE in canvas_dict.iteritems():
 
 
 	# add a TLegend
-	legend = TLegend(.75,.65,.85,.85) # for comparison pad
+	legend = TLegend(.7,.5,.85,.85) # for comparison pad
 	legend.Clear()
-	legend.SetTextSize(.03)
+	legend.SetTextSize(.05)
 	legend.SetTextFont(22)
 	legend.SetBorderSize(0)
 	legend.SetFillColor(ROOT.kWhite)
@@ -192,6 +208,18 @@ for canvasKEY,canvasVALUE in canvas_dict.iteritems():
 		ratio.Divide(num,denominatorHist,1,1,"B")
 		ratio.SetTitle("Ratios : "+ratio.GetTitle())
 		ratio.GetYaxis().SetTitle("Ratio to "+denominatorInst)
+		ratio.GetXaxis().SetTitleSize(6/4. * ratio.GetXaxis().GetTitleSize())
+		ratio.GetYaxis().SetTitleSize(6/4. * ratio.GetYaxis().GetTitleSize())
+		ratio.GetXaxis().SetTitleOffset(1.05*4/6. * ratio.GetXaxis().GetTitleOffset())
+		ratio.GetYaxis().SetTitleOffset(4/6. * ratio.GetYaxis().GetTitleOffset())
+
+		ratio.GetXaxis().SetLabelSize(6/4. * ratio.GetXaxis().GetLabelSize())
+		ratio.GetYaxis().SetLabelSize(6/4. * ratio.GetYaxis().GetLabelSize())
+		ratio.GetXaxis().SetLabelOffset(4/6. * ratio.GetXaxis().GetLabelOffset())
+		ratio.GetYaxis().SetLabelOffset(4/6. * ratio.GetYaxis().GetLabelOffset())
+
+		ratio.GetXaxis().SetTickLength(6/4. * ratio.GetXaxis().GetTickLength());
+		ratio.GetYaxis().SetTickLength(6/4. * ratio.GetYaxis().GetTickLength());
 
 		if firstRatio == 0:
 			ratio.SetMaximum(2.0*ratio.GetMaximum())
@@ -220,11 +248,11 @@ for canvasKEY,canvasVALUE in canvas_dict.iteritems():
 
 # save all to a pdf file
 numPrints = 0
+canvasVALUE.Print(channelLabel+"_SYNCplots.pdf[")	 # open pdf
 for canvasKEY,canvasVALUE in canvas_dict.iteritems():
 	canvasVALUE.cd()
 	canvasVALUE.Update()
-	if numPrints == 0:
-		canvasVALUE.Print(channelLabel+"_SYNCplots.pdf[")	 # open pdf
+	if numPrints == 0:		
 		canvasVALUE.Print(channelLabel+"_SYNCplots.pdf")	
 		numPrints = numPrints + 1
 	elif numPrints != len(canvas_dict)-1:
@@ -232,7 +260,7 @@ for canvasKEY,canvasVALUE in canvas_dict.iteritems():
 		numPrints = numPrints + 1
 	else :
 		canvasVALUE.Print(channelLabel+"_SYNCplots.pdf")	
-		canvasVALUE.Print(channelLabel+"_SYNCplots.pdf]")	# close pdf
+canvasVALUE.Print(channelLabel+"_SYNCplots.pdf]")	# close pdf
 
 
 
