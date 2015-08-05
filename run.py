@@ -156,7 +156,7 @@ for canvasKEY,canvasVALUE in canvas_dict.iteritems():
 		if histKEY.endswith("_"+canvasKEY):
 			plotCount = plotCount+1
 			histVALUE.SetMarkerStyle(21+plotCount)
-			histVALUE.SetMarkerSize(1.8)
+			histVALUE.SetMarkerSize(2.5)
 			if plotCount != 3: # this shade is hard to see
 				histVALUE.SetMarkerColor(plotCount)
 				histVALUE.SetLineColor(plotCount)
@@ -164,7 +164,7 @@ for canvasKEY,canvasVALUE in canvas_dict.iteritems():
 				histVALUE.SetMarkerColor(46)
 				histVALUE.SetLineColor(46)				
 			if plotCount == 1:
-				histVALUE.SetMaximum(1.4*histVALUE.GetMaximum())
+				histVALUE.SetMaximum(2.0*histVALUE.GetMaximum())
 				histVALUE.Draw("PE")				
 			else:
 				histVALUE.Draw("PEsames")
@@ -184,7 +184,7 @@ for canvasKEY,canvasVALUE in canvas_dict.iteritems():
 
 
 	# add a TLegend
-	legend = TLegend(.7,.5,.85,.85) # for comparison pad
+	legend = TLegend(.7,.55,.85,.85) # for comparison pad
 	legend.Clear()
 	legend.SetTextSize(.05)
 	legend.SetTextFont(22)
